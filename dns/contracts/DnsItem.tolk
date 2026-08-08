@@ -334,7 +334,7 @@ get fun dnsresolve(subdomain: slice, category: uint256): DnsResolveResponse {
     assert (startsWithZeroByte) throw ERROR_GOVERNANCE_REQUIRES_NO_AUCTION;
 
     if (subdomainBits > BYTE_SIZE) {
-        category = "dns_next_resolver".toBase256();
+        category = "dns_next_resolver".sha256();
     }
 
     if (category == 0) {

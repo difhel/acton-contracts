@@ -259,7 +259,7 @@ get fun `test item management: dnsresolve follows TEP-81 category and next-resol
     expect(subResolved.resolvedRecord).toBeNotNull();
     expect(subResolved.resolvedRecord!.hash()).toEqual(nextResolverCell.hash());
 
-    val missing = item.dnsresolve(makeDotSlice(), "site".toBase256());
+    val missing = item.dnsresolve(makeDotSlice(), "site".sha256());
     expect(missing.resolvedRecord).toBeNull();
 }
 

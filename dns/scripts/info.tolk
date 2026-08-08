@@ -81,7 +81,7 @@ fun main() {
             println("Owner: {}", data.ownerAddress);
 
             if (data.isInitialized) {
-                val walletRecord = item.dnsresolve(makeDotSlice(), "wallet".toBase256());
+                val walletRecord = item.dnsresolve(makeDotSlice(), "wallet".sha256());
                 println("Editor: {}", item.getEditor());
                 println("Last fill up time: {}", item.getLastFillUpTime());
                 println("Auction: {}", item.getAuctionInfo());

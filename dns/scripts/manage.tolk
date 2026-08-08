@@ -35,7 +35,7 @@ fun main() {
         if (dnsNameValue != null) {
             var records: DnsRecords = [];
 
-            records.set("dns_name".toBase256(), dnsNameValue.prefixWith00().toCell());
+            records.set("dns_name".sha256(), dnsNameValue.prefixWith00().toCell());
 
             val editResult = item.sendEditContent(
                 deployer.address,
@@ -55,7 +55,7 @@ fun main() {
             val changeRecord = item.sendChangeDnsRecord(
                 deployer.address,
                 2,
-                "wallet".toBase256(),
+                "wallet".sha256(),
                 beginCell().storeRef(makeWalletRecord(walletRecordAddress)).endCell().beginParse(),
                 { value: ton("0.1"), bounce: true },
             );
@@ -99,7 +99,7 @@ fun main() {
         println("Last fill up time: {}", item.getLastFillUpTime());
         println(
             "Wallet record present: {}",
-            item.dnsresolve(makeDotSlice(), "wallet".toBase256()).resolvedRecord != null,
+            item.dnsresolve(makeDotSlice(), "wallet".sha256()).resolvedRecord != null,
         );
     }
 }

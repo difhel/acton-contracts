@@ -19,9 +19,9 @@ const ROOT_TME_RESOLVER_HASH = 0xa48bcf827469c5fc38541c77fdd91d4e347eac200f6f2d9
 const ROOT_TON_WWW_RESOLVER_HASH = 0xb48bcf827469c5fc38541c77fdd91d4e347eac200f6f2d9fd62dc08885f0415f
 
 const DEFAULT_DOMAIN = "alice"
-const DNS_NEXT_RESOLVER_CATEGORY = "dns_next_resolver".toBase256()
-const DNS_NAME_CATEGORY = "dns_name".toBase256()
-const DNS_WALLET_CATEGORY = "wallet".toBase256()
+const DNS_NEXT_RESOLVER_CATEGORY = "dns_next_resolver".sha256()
+const DNS_NAME_CATEGORY = "dns_name".sha256()
+const DNS_WALLET_CATEGORY = "wallet".sha256()
 
 fun addrFromHash(hash: uint256): address {
     return address.fromWorkchainAndHash(BASECHAIN, hash);
