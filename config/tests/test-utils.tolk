@@ -160,8 +160,9 @@ fun validatorsToRawDict(validators: array<ValidatorFixture>): dict {
                 pubkeyTag: OP_ED25519_PUBKEY,
                 publicKey: validator.keyPair.publicKey,
                 weight: validator.weight,
-            }.toCell()
-                .beginParse(),
+            }
+            .toCell()
+            .beginParse(),
         );
         i += 1;
     }
@@ -196,7 +197,7 @@ fun currentThreshold(): int {
     val currentVset = testing.getConfig().getParamRaw(CONFIG_PARAM_CURRENT_VALIDATOR_SET);
     val parsed = ValidatorSetExt.fromCell(currentVset);
     return (parsed.totalWeight * VOTE_WEIGHT_THRESHOLD_NUMERATOR) /
-    VOTE_WEIGHT_THRESHOLD_DENOMINATOR;
+        VOTE_WEIGHT_THRESHOLD_DENOMINATOR;
 }
 
 fun getElectorAddress(config: BlockchainConfigMap): address {
@@ -224,7 +225,7 @@ fun setupConfigTest(): ConfigTestContext {
     // Clear param 36 (next validator set) — the default emulator config seeds
     // it, which would leak into the Config contract's internal storage and
     // break tests that expect it to start empty.
-    config.delete(CONFIG_PARAM_NEXT_VALIDATOR_SET as uint32);
+    config.delete(CONFIG_PARAM_NEXT_VALIDATOR_SET);
     expect(testing.setConfig(config)).toEqual(true);
 
     val electorAddress = getElectorAddress(config);
@@ -705,8 +706,9 @@ fun injectProposalStatus(
                 roundsRemaining,
                 wins,
                 losses,
-            }.toCell()
-                .beginParse(),
+            }
+            .toCell()
+            .beginParse(),
         );
 
     setStorage(contract, storage);
@@ -714,7 +716,7 @@ fun injectProposalStatus(
     return hash;
 }
 
-fun setGlobalConfigParam(index: uint32, value: cell) {
+fun setGlobalConfigParam(index: int32, value: cell) {
     var config = testing.getConfig();
     config.setParamRaw(index, value);
     expect(testing.setConfig(config)).toEqual(true);
