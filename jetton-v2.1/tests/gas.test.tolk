@@ -3,6 +3,7 @@ import "@acton/emulation/config"
 import "@acton/emulation/network"
 import "@acton/emulation/testing"
 import "@acton/testing/expect"
+
 import "test-utils"
 import "../contracts/errors"
 import "../contracts/fees-management"
@@ -42,7 +43,7 @@ get fun `test gas: transfer minimal value edge`() {
     expect(notEnoughRes).toHaveFailedTx<AskToTransfer>({
         from: deployer.address,
         to: wallet.address,
-        exitCode: ERROR_NOT_ENOUGH_GAS,
+        exitCode: Errors.NotEnoughGas,
     });
 }
 
@@ -97,7 +98,7 @@ get fun `test gas: transfer with forward amount requires second forward fee`() {
     expect(missingFeeRes).toHaveFailedTx<AskToTransfer>({
         from: deployer.address,
         to: wallet.address,
-        exitCode: ERROR_NOT_ENOUGH_GAS,
+        exitCode: Errors.NotEnoughGas,
     });
 
     val enoughMsg = createMessage({
@@ -122,7 +123,7 @@ get fun `test gas: transfer with forward amount requires second forward fee`() {
     expect(edgeFailRes).toHaveFailedTx<AskToTransfer>({
         from: deployer.address,
         to: wallet.address,
-        exitCode: ERROR_NOT_ENOUGH_GAS,
+        exitCode: Errors.NotEnoughGas,
     });
 }
 
@@ -205,7 +206,7 @@ get fun `test gas: transfer forward fees should follow config`() {
     expect(failRes).toHaveFailedTx<AskToTransfer>({
         from: deployer.address,
         to: wallet.address,
-        exitCode: ERROR_NOT_ENOUGH_GAS,
+        exitCode: Errors.NotEnoughGas,
     });
 }
 
@@ -260,7 +261,7 @@ get fun `test gas: transfer gas fee should follow config`() {
     expect(failRes).toHaveFailedTx<AskToTransfer>({
         from: deployer.address,
         to: wallet.address,
-        exitCode: ERROR_NOT_ENOUGH_GAS,
+        exitCode: Errors.NotEnoughGas,
     });
 }
 
@@ -316,28 +317,28 @@ get fun `test gas: transfer storage fee should follow config`() {
     expect(failRes).toHaveFailedTx<AskToTransfer>({
         from: deployer.address,
         to: wallet.address,
-        exitCode: ERROR_NOT_ENOUGH_GAS,
+        exitCode: Errors.NotEnoughGas,
     });
 }
 
-get fun `test gas: forward ton transfer should fail when fees are insufficient`() {
+get fun `test gas: forward GRAM transfer should fail when fees are insufficient`() {
     val (minter, deployer, notDeployer) = setupTest();
-    val senderWallet = mintTo(minter, deployer, deployer.address, ton("2"));
+    val senderWallet = mintTo(minter, deployer, deployer.address, grams("2"));
 
-    val res = senderWallet.sendTransferPayloadInline(
+    val res = senderWallet.sendTransfer(
         deployer.address,
         LOW_TRANSFER_MSG_VALUE,
-        ton("1"),
+        grams("1"),
         notDeployer.address,
         deployer.address,
         null,
-        ton("0.5"),
-        createEmptySlice(),
+        grams("0.5"),
+        null,
     );
     expect(res).toHaveFailedTx<AskToTransfer>({
         from: deployer.address,
         to: senderWallet.address,
-        exitCode: ERROR_NOT_ENOUGH_GAS,
+        exitCode: Errors.NotEnoughGas,
     });
 }
 
@@ -347,26 +348,31 @@ get fun `test gas: burn minimal value edge`() {
 
     val minimalTonValue = calcMinimalBurnAmount() + MIN_EDGE_DELTA;
 
-    val enough = wallet.sendBurn(
+    val enough = wallet.sendAskToBurn(
         deployer.address,
-        minimalTonValue,
+        0,
         TEST_JETTON_UNIT,
         deployer.address,
         null,
+        { bounce: false, value: minimalTonValue },
     );
-    expect(enough).toHaveSuccessfulTx<AskToBurn>({ from: deployer.address, to: wallet.address });
+    expect(enough).toHaveSuccessfulTx<AskToBurn>({
+        from: deployer.address,
+        to: wallet.address,
+    });
 
-    val fail = wallet.sendBurn(
+    val fail = wallet.sendAskToBurn(
         deployer.address,
-        minimalTonValue - MIN_EDGE_DELTA,
+        0,
         TEST_JETTON_UNIT,
         deployer.address,
         null,
+        { bounce: false, value: minimalTonValue - MIN_EDGE_DELTA },
     );
     expect(fail).toHaveFailedTx<AskToBurn>({
         from: deployer.address,
         to: wallet.address,
-        exitCode: ERROR_NOT_ENOUGH_GAS,
+        exitCode: Errors.NotEnoughGas,
     });
 }
 
@@ -380,26 +386,31 @@ get fun `test gas: burn custom payload should not affect minimal value`() {
 
     val minimalTonValue = calcMinimalBurnAmount() + MIN_EDGE_DELTA;
 
-    val enough = wallet.sendBurn(
+    val enough = wallet.sendAskToBurn(
         deployer.address,
-        minimalTonValue,
+        0,
         TEST_JETTON_UNIT,
         deployer.address,
         customPayload,
+        { bounce: false, value: minimalTonValue },
     );
-    expect(enough).toHaveSuccessfulTx<AskToBurn>({ from: deployer.address, to: wallet.address });
+    expect(enough).toHaveSuccessfulTx<AskToBurn>({
+        from: deployer.address,
+        to: wallet.address,
+    });
 
-    val fail = wallet.sendBurn(
+    val fail = wallet.sendAskToBurn(
         deployer.address,
-        minimalTonValue - MIN_EDGE_DELTA,
+        0,
         TEST_JETTON_UNIT,
         deployer.address,
         customPayload,
+        { bounce: false, value: minimalTonValue - MIN_EDGE_DELTA },
     );
     expect(fail).toHaveFailedTx<AskToBurn>({
         from: deployer.address,
         to: wallet.address,
-        exitCode: ERROR_NOT_ENOUGH_GAS,
+        exitCode: Errors.NotEnoughGas,
     });
 }
 
@@ -409,12 +420,13 @@ get fun `test gas: burn forward fee should follow config`() {
 
     val minimalBefore = calcMinimalBurnAmount() + MIN_EDGE_DELTA;
 
-    val enoughBefore = wallet.sendBurn(
+    val enoughBefore = wallet.sendAskToBurn(
         deployer.address,
-        minimalBefore,
+        0,
         TEST_JETTON_UNIT,
         deployer.address,
         null,
+        { bounce: false, value: minimalBefore },
     );
     expect(enoughBefore).toHaveSuccessfulTx<AskToBurn>({
         from: deployer.address,
@@ -431,29 +443,31 @@ get fun `test gas: burn forward fee should follow config`() {
     val minimalAfter = calcMinimalBurnAmount() + MIN_EDGE_DELTA;
     expect(minimalBefore).toBeLess(minimalAfter);
 
-    val enoughAfter = wallet.sendBurn(
+    val enoughAfter = wallet.sendAskToBurn(
         deployer.address,
-        minimalAfter,
+        0,
         TEST_JETTON_UNIT,
         deployer.address,
         null,
+        { bounce: false, value: minimalAfter },
     );
     expect(enoughAfter).toHaveSuccessfulTx<AskToBurn>({
         from: deployer.address,
         to: wallet.address,
     });
 
-    val failAfter = wallet.sendBurn(
+    val failAfter = wallet.sendAskToBurn(
         deployer.address,
-        minimalAfter - MIN_EDGE_DELTA,
+        0,
         TEST_JETTON_UNIT,
         deployer.address,
         null,
+        { bounce: false, value: minimalAfter - MIN_EDGE_DELTA },
     );
     expect(failAfter).toHaveFailedTx<AskToBurn>({
         from: deployer.address,
         to: wallet.address,
-        exitCode: ERROR_NOT_ENOUGH_GAS,
+        exitCode: Errors.NotEnoughGas,
     });
 }
 
@@ -463,12 +477,13 @@ get fun `test gas: burn gas fee should follow config`() {
 
     val minimalBefore = calcMinimalBurnAmount() + MIN_EDGE_DELTA;
 
-    val enoughBefore = wallet.sendBurn(
+    val enoughBefore = wallet.sendAskToBurn(
         deployer.address,
-        minimalBefore,
+        0,
         TEST_JETTON_UNIT,
         deployer.address,
         null,
+        { bounce: false, value: minimalBefore },
     );
     expect(enoughBefore).toHaveSuccessfulTx<AskToBurn>({
         from: deployer.address,
@@ -486,47 +501,56 @@ get fun `test gas: burn gas fee should follow config`() {
     val minimalAfter = calcMinimalBurnAmount() + MIN_EDGE_DELTA;
     expect(minimalBefore).toBeLess(minimalAfter);
 
-    val enoughAfter = wallet.sendBurn(
+    val enoughAfter = wallet.sendAskToBurn(
         deployer.address,
-        minimalAfter,
+        0,
         TEST_JETTON_UNIT,
         deployer.address,
         null,
+        { bounce: false, value: minimalAfter },
     );
     expect(enoughAfter).toHaveSuccessfulTx<AskToBurn>({
         from: deployer.address,
         to: wallet.address,
     });
 
-    val failAfter = wallet.sendBurn(
+    val failAfter = wallet.sendAskToBurn(
         deployer.address,
-        minimalAfter - MIN_EDGE_DELTA,
+        0,
         TEST_JETTON_UNIT,
         deployer.address,
         null,
+        { bounce: false, value: minimalAfter - MIN_EDGE_DELTA },
     );
     expect(failAfter).toHaveFailedTx<AskToBurn>({
         from: deployer.address,
         to: wallet.address,
-        exitCode: ERROR_NOT_ENOUGH_GAS,
+        exitCode: Errors.NotEnoughGas,
     });
 }
 
-get fun `test gas: burn should fail when sent tons are clearly insufficient`() {
+get fun `test gas: burn should fail when sent grams are clearly insufficient`() {
     val (minter, deployer, _) = setupTest();
-    val wallet = mintTo(minter, deployer, deployer.address, ton("1"));
+    val wallet = mintTo(minter, deployer, deployer.address, grams("1"));
 
-    val res = wallet.sendBurn(deployer.address, ton("0.0001"), ton("1"), deployer.address, null);
+    val res = wallet.sendAskToBurn(
+        deployer.address,
+        0,
+        grams("1"),
+        deployer.address,
+        null,
+        { bounce: false, value: grams("0.0001") },
+    );
     expect(res).toHaveFailedTx<AskToBurn>({
         from: deployer.address,
         to: wallet.address,
-        exitCode: ERROR_NOT_ENOUGH_GAS,
+        exitCode: Errors.NotEnoughGas,
     });
 }
 
 get fun `test gas: wallet storage fee should be measurable`() {
     val (minter, deployer, _) = setupTest();
-    val wallet = mintTo(minter, deployer, deployer.address, ton("1"));
+    val wallet = mintTo(minter, deployer, deployer.address, grams("1"));
 
     val state = testing.getAccountState(wallet.address);
     expect(state).toBeNotNull();

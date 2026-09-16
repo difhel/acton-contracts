@@ -4,7 +4,7 @@ import "utils/common"
 import "../wrappers/NftCollection.gen"
 
 fun main() {
-    val deployer = promptNftWallet("Select NFT Deployer");
+    val deployer = promptNftWallet("NFT_DEPLOYER", "Select NFT Deployer");
     val collection = promptNftCollection("Enter NFT Collection address");
     val newAdmin = promptNftAddress("Enter new admin address");
 
@@ -12,7 +12,7 @@ fun main() {
         deployer.address,
         0,
         newAdmin,
-        { value: ton("0.05"), bounce: true },
+        { value: grams("0.05"), bounce: true },
     );
     println(res.waitForTrace());
 
