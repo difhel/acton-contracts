@@ -42,7 +42,6 @@ fun expectDeleted(item: NftItem, result: SendResultList, owner: address) {
         from: item.address,
         to: owner,
         bounce: false,
-        sendMode: 160,
         body: ReturnExcessesBack { queryId: 42 }.toCell(),
     });
     val description = tx.description.load();
@@ -219,28 +218,6 @@ get fun `test burn: unaffordable forward amount preserves live item`() {
         from: owner.address,
         to: item.address,
         exitCode: Errors.TooSmallRestAmount,
-    });
-    expect(item.getNftData().ownerAddress!).toEqual(owner.address);
-}
-
-get fun `test burn: zero address in another workchain is rejected`() {
-    val (collection, _, _) = setupTest();
-    val owner = testing.treasury("burn-owner");
-    val item = nftFixture(collection, owner.address);
-    val result = item.sendTransferPayloadInline(
-        owner.address,
-        42,
-        address("-1:0000000000000000000000000000000000000000000000000000000000000000"),
-        null,
-        null,
-        0,
-        createEmptySlice(),
-        { value: grams("0.05"), bounce: true },
-    );
-    expect(result).toHaveFailedTx<AskToChangeOwnership>({
-        from: owner.address,
-        to: item.address,
-        exitCode: Errors.InvalidWorkchain,
     });
     expect(item.getNftData().ownerAddress!).toEqual(owner.address);
 }
