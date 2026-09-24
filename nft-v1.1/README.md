@@ -1,5 +1,7 @@
 # NFT
 
+Fork extension: [burn-address destruction and same-index re-minting](BURN_AND_REMINT.md).
+
 Original FunC: [ton-blockchain/nft-contract](https://github.com/ton-blockchain/nft-contract).
 
 Related TEPs: [TEP-62 NFT Standard](https://github.com/ton-blockchain/TEPs/blob/master/text/0062-nft-standard.md), [TEP-64 Token Data Standard](https://github.com/ton-blockchain/TEPs/blob/master/text/0064-token-data-standard.md), and [TEP-66 NFT Royalty Standard Extension](https://github.com/ton-blockchain/TEPs/blob/master/text/0066-nft-royalty-standard.md).

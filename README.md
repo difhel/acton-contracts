@@ -1,5 +1,10 @@
 # Reference TON contracts
 
+This fork adds **NFT burn-address destruction and same-index re-minting** for
+collections that want to redeploy deleted items. See
+[the fork behavior and test instructions](nft-v1.1/BURN_AND_REMINT.md).
+This is a custom extension to the upstream NFT implementation, not an audited release.
+
 Reference-grade TON contracts in Tolk, built with the [Acton toolchain](https://ton-blockchain.github.io/acton/).
 
 This monorepo collects reference implementations for core TON ecosystem contracts, built on the modern Tolk and Acton stack. Each contract system preserves interface compatibility with its original FunC implementation. Where practical, compiled Tolk BoCs are validated against the existing TypeScript Sandbox test suites.

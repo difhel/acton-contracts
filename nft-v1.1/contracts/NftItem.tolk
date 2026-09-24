@@ -3,10 +3,13 @@ import "fees-management"
 import "messages"
 import "types"
 
+// Wallet burn actions use an ordinary TEP-62 transfer to the basechain zero address.
+const NFT_BURN_ADDRESS = address("0:0000000000000000000000000000000000000000000000000000000000000000")
+
 contract NftItem {
     author: "The Tolk Team"
-    version: "1.1"
-    description: "Standard NFT Item. TEP-62 and TEP-64 compliant"
+    version: "1.1-burn.1"
+    description: "NFT Item with owner-authorized burn-address destruction"
     incomingMessages: AllowedMessageToNftItem
     storage: NftItemStorage
     storageAtDeployment: NftItemStorageNotInitialized
@@ -79,6 +82,21 @@ fun onInternalMessage(in: InMessage) {
                     },
                 });
                 ownershipMsg.send(SEND_MODE_PAY_FEES_SEPARATELY);
+            }
+            if (msg.newOwnerAddress == NFT_BURN_ADDRESS) {
+                // Keep the standard optional notification above, then return ALL remaining
+                // TON (including the storage reserve) to the authenticated owner. Never
+                // ignore action errors: a failed send must not leave a half-burned item.
+                val refundMsg = createMessage({
+                    bounce: BounceMode.NoBounce,
+                    dest: storage.ownerAddress,
+                    value: 0,
+                    body: ReturnExcessesBack { queryId: msg.queryId },
+                });
+                // SAFETY: only the authenticated owner can request this zero-address burn;
+                // drain to that owner without ignoring errors, and delete only at zero balance.
+                refundMsg.send(SEND_MODE_CARRY_ALL_BALANCE | SEND_MODE_DESTROY);
+                return;
             }
             if (msg.sendExcessesTo != null) {
                 val excessesMsg = createMessage({

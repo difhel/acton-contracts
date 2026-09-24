@@ -1,3 +1,9 @@
+## nft-1.1-burn.1 (fork) - 25.09.2026
+
+Added owner-authorized destruction when transferring to the basechain zero address,
+with the remaining TON refunded to the owner. Added burn and same-index re-mint
+regression tests. Collection code and message formats are unchanged.
+
 ## nft-1.1 - 11.05.2026
 
 Rewrote contract in Tolk. Ported tests to Acton toolchain.
@@ -57,4 +63,3 @@ Identical with nft-collection-editable-1.00.
 ## nft-1.00 - 31.03.2022
 
 First Release: https://t.me/tonblockchain/112.
-
